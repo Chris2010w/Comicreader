@@ -54,7 +54,20 @@ enum FolderAccess {
         return try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
     }
 
+    /// Ειδική τιμή: σημαίνει "χρήση του δικού μου φακέλου της εφαρμογής" (Files → Στο iPhone μου → Comic Reader).
+    static let appFolderMarker = Data("APP_DOCUMENTS".utf8)
+
+    static func appDocumentsURL() -> URL? {
+        guard let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return nil }
+        let note = docs.appendingPathComponent("PUT_COMICS_HERE.txt")
+        if !FileManager.default.fileExists(atPath: note.path) {
+            try? "Put your .cbz and .pdf files in this folder.".write(to: note, atomically: true, encoding: .utf8)
+        }
+        return docs
+    }
+
     static func resolve(_ data: Data) -> URL? {
+        if data == appFolderMarker { return appDocumentsURL() }
         var stale = false
         return try? URL(resolvingBookmarkData: data, options: [], relativeTo: nil, bookmarkDataIsStale: &stale)
     }

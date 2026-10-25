@@ -5,7 +5,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
     private var folderName: String {
-        guard let data = settings.folderBookmark, let url = FolderAccess.resolve(data) else { return "—" }
+        guard let data = settings.folderBookmark else { return "—" }
+        if data == FolderAccess.appFolderMarker { return "Φάκελος εφαρμογής" }
+        guard let url = FolderAccess.resolve(data) else { return "—" }
         return url.lastPathComponent
     }
 
@@ -30,7 +32,7 @@ struct SettingsView: View {
                     Text("Πάτα στη δεξιά πλευρά της οθόνης για επόμενη σελίδα και στην αριστερή για προηγούμενη. Στη μέση εμφανίζεται/κρύβεται το μενού.")
                 }
 
-                Section("Φάκελος comics") {
+                Section {
                     HStack {
                         Text(folderName)
                             .foregroundColor(.secondary)
@@ -43,6 +45,14 @@ struct SettingsView: View {
                             }
                         }
                     }
+                    Button("Χρήση φακέλου της εφαρμογής") {
+                        _ = FolderAccess.appDocumentsURL()
+                        settings.folderBookmark = FolderAccess.appFolderMarker
+                    }
+                } header: {
+                    Text("Φάκελος comics")
+                } footer: {
+                    Text("Φάκελος εφαρμογής: Files → Στο iPhone μου → Comic Reader.")
                 }
 
                 Section("Ασφάλεια") {

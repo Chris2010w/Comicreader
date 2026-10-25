@@ -91,6 +91,20 @@ struct SetupView: View {
             }
             .buttonStyle(PrimaryButtonStyle())
 
+            Button {
+                _ = FolderAccess.appDocumentsURL()
+                folderData = FolderAccess.appFolderMarker
+                folderName = "Φάκελος εφαρμογής"
+            } label: {
+                Label("Χρήση φακέλου της εφαρμογής", systemImage: "iphone")
+            }
+            .buttonStyle(PrimaryButtonStyle())
+
+            Text("Ο φάκελος της εφαρμογής βρίσκεται στο Files → Στο iPhone μου → Comic Reader. Βάλε εκεί τα CBZ/PDF.")
+                .font(.footnote)
+                .multilineTextAlignment(.center)
+                .foregroundColor(Color.white.opacity(0.65))
+
             Toggle(isOn: $useFaceID) {
                 Label("Κλείδωμα με Face ID", systemImage: "faceid")
                     .foregroundColor(.white)
