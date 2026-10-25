@@ -3,7 +3,6 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var settings: AppSettings
     @Environment(\.dismiss) private var dismiss
-    @State private var pickFolder = false
 
     private var folderName: String {
         guard let data = settings.folderBookmark, let url = FolderAccess.resolve(data) else { return "—" }
@@ -36,7 +35,13 @@ struct SettingsView: View {
                         Text(folderName)
                             .foregroundColor(.secondary)
                         Spacer()
-                        Button("Αλλαγή") { pickFolder = true }
+                        Button("Αλλαγή") {
+                            FolderPicker.present { url in
+                                if let data = FolderAccess.makeBookmark(from: url) {
+                                    settings.folderBookmark = data
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -62,18 +67,6 @@ struct SettingsView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Έτοιμο") { dismiss() }
                 }
-            }
-            .sheet(isPresented: $pickFolder) {
-                FolderPicker(
-                    onPick: { url in
-                        pickFolder = false
-                        if let data = FolderAccess.makeBookmark(from: url) {
-                            settings.folderBookmark = data
-                        }
-                    },
-                    onCancel: { pickFolder = false }
-                )
-                .ignoresSafeArea()
             }
         }
     }

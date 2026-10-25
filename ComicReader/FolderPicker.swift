@@ -1,36 +1,42 @@
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
 
-struct FolderPicker: UIViewControllerRepresentable {
-    let onPick: (URL) -> Void
-    let onCancel: () -> Void
+/// Εμφανίζει τον επιλογέα φακέλου του iOS (modal, όπως πρέπει να παρουσιάζεται).
+final class FolderPicker: NSObject, UIDocumentPickerDelegate {
+    private static var current: FolderPicker?
+    private let onPick: (URL) -> Void
 
-    func makeCoordinator() -> Coordinator { Coordinator(onPick: onPick, onCancel: onCancel) }
-
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder], asCopy: false)
-        picker.allowsMultipleSelection = false
-        picker.delegate = context.coordinator
-        return picker
+    private init(onPick: @escaping (URL) -> Void) {
+        self.onPick = onPick
     }
 
-    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+    static func present(onPick: @escaping (URL) -> Void) {
+        let helper = FolderPicker(onPick: onPick)
+        current = helper
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.folder], asCopy: false)
+        picker.allowsMultipleSelection = false
+        picker.delegate = helper
+        topViewController()?.present(picker, animated: true)
+    }
 
-    final class Coordinator: NSObject, UIDocumentPickerDelegate {
-        let onPick: (URL) -> Void
-        let onCancel: () -> Void
-
-        init(onPick: @escaping (URL) -> Void, onCancel: @escaping () -> Void) {
-            self.onPick = onPick
-            self.onCancel = onCancel
+    private static func topViewController() -> UIViewController? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first
+        let window = scene?.windows.first(where: { $0.isKeyWindow }) ?? scene?.windows.first
+        var top = window?.rootViewController
+        while let presented = top?.presentedViewController {
+            top = presented
         }
+        return top
+    }
 
-        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            if let url = urls.first { onPick(url) } else { onCancel() }
-        }
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        if let url = urls.first { onPick(url) }
+        FolderPicker.current = nil
+    }
 
-        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            onCancel()
-        }
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        FolderPicker.current = nil
     }
 }

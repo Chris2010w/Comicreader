@@ -22,7 +22,6 @@ struct SetupView: View {
     @State private var folderData: Data?
     @State private var folderName = ""
     @State private var useFaceID = false
-    @State private var pickFolder = false
 
     private var trimmedName: String { name.trimmingCharacters(in: .whitespacesAndNewlines) }
 
@@ -47,19 +46,6 @@ struct SetupView: View {
             .frame(maxWidth: 480)
         }
         .animation(.easeInOut, value: step)
-        .sheet(isPresented: $pickFolder) {
-            FolderPicker(
-                onPick: { url in
-                    pickFolder = false
-                    if let data = FolderAccess.makeBookmark(from: url) {
-                        folderData = data
-                        folderName = url.lastPathComponent
-                    }
-                },
-                onCancel: { pickFolder = false }
-            )
-            .ignoresSafeArea()
-        }
     }
 
     private var nameStep: some View {
@@ -94,7 +80,12 @@ struct SetupView: View {
                 .foregroundColor(Color.white.opacity(0.8))
 
             Button {
-                pickFolder = true
+                FolderPicker.present { url in
+                    if let data = FolderAccess.makeBookmark(from: url) {
+                        folderData = data
+                        folderName = url.lastPathComponent
+                    }
+                }
             } label: {
                 Label(folderName.isEmpty ? "Επιλογή φακέλου" : folderName, systemImage: "folder.fill")
             }
